@@ -67,7 +67,7 @@ void ConfigureChecker(sqlcheck::Configuration &state) {
   }
 
   // Run validators
-  std::cout << "+-------------------------------------------------+\n"
+  /*std::cout << "+-------------------------------------------------+\n"
             << "|                   SQLCHECK                      |\n"
             << "+-------------------------------------------------+\n";
 
@@ -77,7 +77,7 @@ void ConfigureChecker(sqlcheck::Configuration &state) {
   ValidateVerbose(state);
   ValidateDelimiter(state);
 
-  std::cout << "-------------------------------------------------\n";
+  std::cout << "-------------------------------------------------\n";*/
 
 }
 
