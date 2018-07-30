@@ -56,9 +56,12 @@ namespace sqlcheck {
 
 			fileLine++;
 			
+			//trim string 
 			statement_fragment = std::regex_replace(statement_fragment, std::regex("^ +| +$|( ) +"), "$1");
+			//remove tabs
 			statement_fragment.erase(std::remove(statement_fragment.begin(), statement_fragment.end(), '\t'), statement_fragment.end());
 
+			//check only if new line is not amongst commented code.
 			if (!commentedCode) {
 				int startPos = statement_fragment.rfind("/*");
 				if (startPos != -1) {
@@ -74,7 +77,7 @@ namespace sqlcheck {
 					}
 				} //end of inner in block if(startPos > 0)
 			}
-
+		 
 			if (commentedCode) {
 				int pos = statement_fragment.find("*/");
 				if (pos != -1) {
@@ -84,10 +87,16 @@ namespace sqlcheck {
 						second_part = statement_fragment.substr(pos + 2, statement_fragment.size());
 						second_part = std::regex_replace(second_part, std::regex("^ +| +$|( ) +"), "$1");
 						if (second_part.empty() == false) {
-							first_part = first_part +" "+second_part;
+							if (before_comment_code_valid) {
+								first_part = first_part + " " + second_part;
+							}
+							else {
+								statement_fragment = second_part;
+							}
 						}
+						
 					}
-					//pattern is found in the beginning 
+					//pattern is found in the beginning i.e line does not have anything but */ 
 					else {
 						statement_fragment = "";
 					}
@@ -97,6 +106,7 @@ namespace sqlcheck {
 				statement_fragment = first_part;
 			}
 			
+			//if commented line is found and before commented code is not valid then just line number is recorded.
 			if ((commentedCode && !before_comment_code_valid)||statement_fragment.rfind("--", 0) == 0 || statement_fragment.empty() == true) {
 				if (currentCommanCounter != 0) {
 					int size = line_location.size();
@@ -207,10 +217,10 @@ namespace sqlcheck {
 	}
 
 	void PrintMessage(Configuration& state,
-		const std::string sql_statement,
-		const bool print_statement,
+		const std::string ,
+		const bool ,
 		const RiskLevel pattern_risk_level,
-		const PatternType pattern_type,
+		const PatternType ,
 		const std::string title,
 		const std::string message) {
 
@@ -240,9 +250,6 @@ namespace sqlcheck {
 		const std::string message,
 		const bool exists,
 		int fileLine, std::vector<int> line_location, const size_t min_count) {
-
-		//std::cout << "PATTERN LEVEL: " << pattern_risk_level << "\n";
-		//std::cout << "CHECKER LEVEL: " << state.log_level << "\n";
 
 		// Check log level
 		if (pattern_risk_level < state.risk_level) {
