@@ -125,6 +125,7 @@ elseif(APPLE)
     SET(CPACK_BUNDLE_NAME "sqlcheck")
 elseif(UNIX)
     SET(CPACK_GENERATOR "TGZ;RPM;DEB;ZIP")
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libstdc++" )
 endif()
 SET(CPACK_STRIP_FILES TRUE)
 
