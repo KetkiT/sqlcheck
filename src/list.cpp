@@ -771,7 +771,6 @@ void CheckPatternMatching(Configuration& state,
 void CheckSpaghettiQuery(Configuration& state,
                          const std::string& sql_statement,
                          bool& print_statement, int fileLine, std::vector<int> line_location){
-
   std::regex true_pattern(".+");
   std::regex false_pattern("pattern must not exist");
   std::regex pattern;
@@ -782,9 +781,11 @@ void CheckSpaghettiQuery(Configuration& state,
 
   if(sql_statement.size() >= spaghetti_query_char_count){
     pattern = true_pattern;
+	print_statement = true;
   }
   else {
     pattern = false_pattern;
+	print_statement = false;
   }
 
   auto message =

@@ -37,7 +37,7 @@ namespace sqlcheck {
 
 		std::stringstream sql_statement;
 		const size_t fragment_size = 4096;
-		char buffer[fragment_size];
+		char buffer[fragment_size] = {};
 
 
 		// Go over the input stream
@@ -45,7 +45,7 @@ namespace sqlcheck {
 		int currentCommanCounter = 0;
 		std::vector<int> line_location;
 		bool commentedCode = false;
-		bool before_comment_code_valid =false;
+		bool before_comment_code_valid = false;
 		std::string first_part;
 		std::string second_part;
 		while (!input->eof()) {
@@ -55,7 +55,7 @@ namespace sqlcheck {
 			std::string statement_fragment(buffer);
 
 			fileLine++;
-			
+
 			//trim string 
 			statement_fragment = std::regex_replace(statement_fragment, std::regex("^ +| +$|( ) +"), "$1");
 			//remove tabs
@@ -77,7 +77,7 @@ namespace sqlcheck {
 					}
 				} //end of inner in block if(startPos > 0)
 			}
-		 
+
 			if (commentedCode) {
 				int pos = statement_fragment.find("*/");
 				if (pos != -1) {
@@ -94,7 +94,7 @@ namespace sqlcheck {
 								statement_fragment = second_part;
 							}
 						}
-						
+
 					}
 					//pattern is found in the beginning i.e line does not have anything but */ 
 					else {
@@ -102,12 +102,12 @@ namespace sqlcheck {
 					}
 				}
 			}
-			if(before_comment_code_valid){
+			if (before_comment_code_valid) {
 				statement_fragment = first_part;
 			}
-			
+
 			//if commented line is found and before commented code is not valid then just line number is recorded.
-			if ((commentedCode && !before_comment_code_valid)||statement_fragment.rfind("--", 0) == 0 || statement_fragment.empty() == true) {
+			if ((commentedCode && !before_comment_code_valid) || statement_fragment.rfind("--", 0) == 0 || statement_fragment.empty() == true) {
 				if (currentCommanCounter != 0) {
 					int size = line_location.size();
 					if (size > 0) {
@@ -135,11 +135,11 @@ namespace sqlcheck {
 
 			// Check for delimiter in line
 			before_comment_code_valid = false;
-			
+
 			std::size_t location = statement_fragment.find(state.delimiter);
 			if (location != std::string::npos)
 			{
-				//sql_statement.str().pop_back();
+				
 			  // Check the statement
 				CheckStatement(state, sql_statement.str(), currentCommanCounter, line_location);
 
@@ -217,10 +217,10 @@ namespace sqlcheck {
 	}
 
 	void PrintMessage(Configuration& state,
-		const std::string ,
-		const bool ,
+		const std::string,
+		const bool,
 		const RiskLevel pattern_risk_level,
-		const PatternType ,
+		const PatternType,
 		const std::string title,
 		const std::string message) {
 
@@ -234,9 +234,6 @@ namespace sqlcheck {
 			std::cout << WrapText(message) << "\n";
 		}
 
-		// Update checker stats
-		state.checker_stats[pattern_risk_level]++;
-		state.checker_stats[RISK_LEVEL_ALL]++;
 
 	}
 
@@ -259,18 +256,29 @@ namespace sqlcheck {
 		bool found = false;
 		std::smatch match;
 		std::size_t count = 0;
-
+		bool spaghettiQA = false;
 
 		try {
-			std::sregex_iterator next(sql_statement.begin(),
-				sql_statement.end(),
-				anti_pattern);
-			std::sregex_iterator end;
-			while (next != end) {
-				match = *next;
-				found = true;
-				count++;
-				next++;
+			if (title.compare("Spaghetti Query Alert") == 0) {
+
+				if (print_statement == true) {
+					found = true;
+					spaghettiQA = true;
+					count++;
+				}
+			}
+			else {
+				std::sregex_iterator next(sql_statement.begin(), sql_statement.end(), anti_pattern);
+
+				std::sregex_iterator end;
+				if (!next->empty()) {
+					while (next != end) {
+						match = *next;
+						found = true;
+						count++;
+						next++;
+					}
+				}
 			}
 		}
 		catch (std::regex_error& e) {
@@ -287,42 +295,30 @@ namespace sqlcheck {
 				pattern_type,
 				title,
 				message);
-			//std::cout << "\n sql statement:"<< sql_statement << "\n";
+		
 
 
 			//following logic finds the line no in a file where matching expression is found.
 			int offset = 0;
 
-			/*for (int i = 0; i < line_location.size(); i++) {
-				std::cout << line_location[i]<<"\n";
-			}*/
 
-
-			if (match.str(0).empty() == false) {
-				int pos = sql_statement.find(match.str(0));
-				//std::cout << "SQL statement : " << sql_statement << "\n";
-				//std::cout << "Matching expression : " << match.str(0) << "\n";
-				//std::cout << "Matching position : "<<pos  <<"\n";
-				if (pos != std::string::npos) {
-					for (int aa = 0; aa < line_location.size(); aa++) {
-						if (pos < line_location[aa]) {
-							break;
-						}
-						offset++;
-					}//end of for loop
-				}
-			}//end of outer if block*/
-
-			//std::cout << "Printing offset: " << offset<<"\n";
+			if (!spaghettiQA) {
+				if (match.str(0).empty() == false) {
+					int pos = sql_statement.find(match.str(0));
+					if (pos != std::string::npos) {
+						for (int aa = 0; aa < line_location.size(); aa++) {
+							if (pos < line_location[aa]) {
+								break;
+							}
+							offset++;
+						}//end of for loop
+					}
+				}//end of outer if block*/
+			}
+			
 
 			if (exists == true) {
-				ColorModifier blue(ColorCode::FG_BLUE, state.color_mode, true);
-				ColorModifier regular(ColorCode::FG_DEFAULT, state.color_mode, false);
-				//std::cout << "file line :" << fileLine<<"\n";
 				std::cout << (fileLine + offset);
-				//std::cout <<"fileLine+ offset:" <<(fileLine+ offset)<<"\n";
-
-
 				std::cout << "\n";
 			}
 
@@ -380,7 +376,7 @@ namespace sqlcheck {
 
 		CheckNullUsage(state, statement, print_statement, fileLine, line_location);
 
-		CheckNotNullUsage(state, statement, print_statement, fileLine, line_location);
+		//	CheckNotNullUsage(state, statement, print_statement, fileLine, line_location);
 
 		CheckConcatenation(state, statement, print_statement, fileLine, line_location);
 
