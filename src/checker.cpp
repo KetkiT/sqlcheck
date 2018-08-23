@@ -219,7 +219,7 @@ namespace sqlcheck {
 	void PrintMessage(Configuration& state,
 		const std::string,
 		const bool,
-		const RiskLevel pattern_risk_level,
+		const RiskLevel,
 		const PatternType,
 		const std::string title,
 		const std::string message) {
