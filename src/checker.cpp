@@ -271,7 +271,7 @@ namespace sqlcheck {
 				std::sregex_iterator next(sql_statement.begin(), sql_statement.end(), anti_pattern);
 
 				std::sregex_iterator end;
-				if (!next->empty()) {
+				if ((next != end) && !next->empty()) {
 					while (next != end) {
 						match = *next;
 						found = true;
